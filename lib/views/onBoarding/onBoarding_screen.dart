@@ -23,7 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
 
         finishCallback: () {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.mainScreen);
         },
       ),
     );

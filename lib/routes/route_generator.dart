@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/views/home/home_screen.dart';
+import 'package:news_app/views/home/main_screen.dart';
 import 'package:news_app/views/onBoarding/onBoarding_screen.dart';
 import '../routes/app_routes.dart';
 class RouteGenerator {
@@ -14,6 +15,10 @@ class RouteGenerator {
       case AppRoutes.home:
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),
+        );
+      case AppRoutes.mainScreen:
+        return MaterialPageRoute(
+          builder: (_) => const MainScreen(),
         );
 
       default:

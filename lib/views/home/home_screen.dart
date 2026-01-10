@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:news_app/widgets/navbar.dart';
+import 'package:news_app/core/services/news_service.dart';
+import 'package:news_app/models/news_model.dart';
 import 'package:news_app/widgets/news_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,34 +11,49 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late PageController pageController;
+  final NewsService _newsService = NewsService();
+  late Future<List<NewsModel>> _newsFuture;
 
   @override
   void initState() {
     super.initState();
-    pageController = PageController(initialPage: 0);
-  }
-
-  @override
-  void dispose() {
-    pageController.dispose();
-    super.dispose();
+    // Fetch news when screen loads
+    _newsFuture = _newsService.fetchNews();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: const [
-          NewsCard(title: "test", description: "lorem ipsum drip sold for me can do nothing holy top of this content", imageUrl: "https://storage.googleapis.com/gweb-developer-goog-blog-assets/images/GCLI005-Conductor-Blog-Header.original.png", date: "04-12-2024",),
-          Text("page2"),
-          Text("page3"),
-          Text("page4"),
-        ],
+      appBar: AppBar(title: const Text('Tech News')),
+      body: SafeArea(
+        child: FutureBuilder<List<NewsModel>>(
+          future: _newsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No news found.'));
+            }
+
+            final newsList = snapshot.data!;
+            return ListView.builder(
+              itemCount: newsList.length,
+              itemBuilder: (context, index) {
+                final news = newsList[index];
+                return NewsCard(
+                  title: news.title,
+                  description: news.description ?? '',
+                  imageUrl: news.urlToImage ??
+                      'https://via.placeholder.com/150', // fallback image
+                  date: news.publishedAt.toString().split('T')[0],
+                );
+              },
+            );
+          },
+        ),
       ),
-      bottomNavigationBar: CustomNavBar(pageController: pageController), 
     );
   }
 }
