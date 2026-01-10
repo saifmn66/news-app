@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/views/home/techC_ai_screen.dart';
+import 'package:news_app/views/home/techC_crypto_screen.dart';
 import 'package:news_app/views/home/techC_cyber_screen.dart';
 import 'package:news_app/views/home/techC_screen.dart';
 import 'package:news_app/widgets/navbar.dart';
@@ -36,7 +37,7 @@ class _MainScreenState extends State<MainScreen> {
           TechcScreen(),
           TechcCyberScreen(),
           TechcAiScreen(),
-          Text("page4"),
+          TechcCryptoScreen(),
         ],
       ),
       bottomNavigationBar: CustomNavBar(pageController: pageController), 

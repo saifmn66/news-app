@@ -50,6 +50,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
             filledIcon: Icons.folder_rounded,
             outlinedIcon: Icons.folder_outlined,
           ),
+          
         ],
       ),
     );
