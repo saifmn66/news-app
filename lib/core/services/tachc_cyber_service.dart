@@ -9,7 +9,8 @@ class TechCrunchCyberService {
     final response = await http.get(
       Uri.parse('$_url?paged=$page'),
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
     );
 
@@ -17,33 +18,38 @@ class TechCrunchCyberService {
       final rssFeed = RssFeed.parse(response.body);
 
       final futures = rssFeed.items.map((item) async {
+        String? articleId;
+        if (item.guid != null && item.guid!.contains('?p=')) {
+          articleId = item.guid!.split('?p=').last;
+        }
         var model = TechCModel.fromRss(item);
         if (model.imageUrl == "https://via.placeholder.com/300") {
-           try {
+          try {
             final articleResponse = await http.get(Uri.parse(model.link));
-             if (articleResponse.statusCode == 200) {
-              final regex = RegExp(r'<meta property="og:image" content="([^">]+)"');
+            if (articleResponse.statusCode == 200) {
+              final regex = RegExp(
+                r'<meta property="og:image" content="([^">]+)"',
+              );
               final match = regex.firstMatch(articleResponse.body);
               if (match != null) {
-                 return TechCModel(
-                   title: model.title,
-                   link: model.link,
-                   author: model.author,
-                   date: model.date,
-                   imageUrl: match.group(1)!,
-                 );
+                return TechCModel(
+                  id: articleId != null ? int.parse(articleId) : 0,
+                  title: model.title,
+                  link: model.link,
+                  author: model.author,
+                  date: model.date,
+                  imageUrl: match.group(1)!,
+                );
               }
             }
-           } catch (_) {}
+          } catch (_) {}
         }
         return model;
       });
-      
+
       return Future.wait(futures);
     } else {
-      throw Exception(
-        'Failed to fetch TechCrunch RSS: ${response.statusCode}',
-      );
+      throw Exception('Failed to fetch TechCrunch RSS: ${response.statusCode}');
     }
   }
 }

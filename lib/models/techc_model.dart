@@ -1,7 +1,7 @@
 import 'package:dart_rss/dart_rss.dart';
 
 class TechCModel {
-  final String? id;
+  final int id;
   final String title;
   final String link;
   final String author;
@@ -9,7 +9,7 @@ class TechCModel {
   final String imageUrl;
 
   TechCModel({
-    this.id,
+    required this.id,
     required this.title,
     required this.link,
     required this.author,
@@ -41,6 +41,7 @@ class TechCModel {
     }
 
     return TechCModel(
+      id: 0,
       title: item.title ?? "No Title",
       link: item.link ?? "",
       author: item.dc?.creator ?? "TechCrunch",

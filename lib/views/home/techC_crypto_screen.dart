@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:news_app/core/services/techC_details_service.dart';
 import 'package:news_app/core/services/techc_crypto_service.dart';
 import 'package:news_app/views/detail/detail_screen.dart';
 import '../../models/techc_model.dart';
@@ -98,31 +99,37 @@ class _TechcCryptoScreenState extends State<TechcCryptoScreen> {
                   description: "By ${article.author}",
                   imageUrl: article.imageUrl,
                   date: article.date,
-                  onTap: () {
-                    print(article.id);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => NewsDetailsScreen(
-                          article: TechCDetailsModel(
-                            id: 1,
-                            date: '2026-01-08',
-                            slug: 'future-of-ai',
-                            link: 'https://example.com',
-                            title:
-                                'The Future of Artificial Intelligence: What to Expect in 2026',
-                            content:
-                                'Artificial intelligence continues to reshape our world in unprecedented ways. From healthcare to transportation, AI technologies are becoming increasingly sophisticated and integrated into our daily lives.\n\nMachine learning algorithms are now capable of processing vast amounts of data with remarkable accuracy, enabling breakthroughs in fields ranging from drug discovery to climate modeling. The latest developments in neural networks have opened new possibilities for natural language processing and computer vision.\n\nAs we move forward, the ethical implications of AI development remain a crucial consideration. Researchers and policymakers are working together to ensure that AI technologies are developed responsibly and benefit society as a whole.\n\nThe intersection of AI with other emerging technologies like quantum computing and biotechnology promises even more transformative changes in the years ahead. Organizations worldwide are investing heavily in AI research and development, recognizing its potential to solve some of humanity\'s most pressing challenges.',
-                            excerpt:
-                                'Exploring the latest developments in AI technology and their impact on society in the coming years.',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
-                            authorName: 'Sarah Mitchell',
-                            categories: ['Technology', 'AI', 'Future'],
-                          ),
-                        ),
-                      ),
+                  onTap: () async {
+                    final service = TechCrunchDetailsService();
+
+                    // Show a loading dialog while fetching
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
                     );
+
+                    try {
+                      final articleDetails = await service.fetchArticleById(
+                        article.id,
+                      );
+
+                      Navigator.pop(context); // Close the loading dialog
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              NewsDetailsScreen(article: articleDetails),
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context); // Close the loading dialog
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to load article: $e')),
+                      );
+                    }
                   },
                 );
               },

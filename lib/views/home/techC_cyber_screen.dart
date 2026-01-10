@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/core/services/tachc_cyber_service.dart';
+import 'package:news_app/core/services/techC_details_service.dart';
+import 'package:news_app/views/detail/detail_screen.dart';
 import '../../models/techc_model.dart';
 import '../../widgets/news_card.dart';
 
@@ -97,6 +99,38 @@ class _TechcCyberScreenState extends State<TechcCyberScreen> {
                   description: "By ${article.author}",
                   imageUrl: article.imageUrl,
                   date: article.date,
+                  onTap: () async {
+                    final service = TechCrunchDetailsService();
+
+                    // Show a loading dialog while fetching
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) =>
+                          const Center(child: CircularProgressIndicator()),
+                    );
+
+                    try {
+                      final articleDetails = await service.fetchArticleById(
+                        article.id,
+                      );
+
+                      Navigator.pop(context); // Close the loading dialog
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              NewsDetailsScreen(article: articleDetails),
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context); // Close the loading dialog
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to load article: $e')),
+                      );
+                    }
+                  },
                 );
               },
             ),

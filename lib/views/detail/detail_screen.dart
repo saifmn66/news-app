@@ -1,31 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:news_app/models/tec_details_model.dart';
 
-class TechCDetailsModel {
-  final int id;
-  final String date;
-  final String slug;
-  final String link;
-  final String title;
-  final String content;
-  final String excerpt;
-  final String imageUrl;
-  final String authorName;
-  final List<String> categories;
 
-  TechCDetailsModel({
-    required this.id,
-    required this.date,
-    required this.slug,
-    required this.link,
-    required this.title,
-    required this.content,
-    required this.excerpt,
-    required this.imageUrl,
-    required this.authorName,
-    required this.categories,
-  });
-}
 
 class NewsDetailsScreen extends StatefulWidget {
   final TechCDetailsModel article;

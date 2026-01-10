@@ -1,3 +1,5 @@
+import 'package:html_unescape/html_unescape.dart';
+
 class TechCDetailsModel {
   final int id;
   final String date;
@@ -23,21 +25,24 @@ class TechCDetailsModel {
     required this.categories,
   });
 
+  /// Helper to strip HTML tags and decode HTML entities
+  static String _cleanHtml(String htmlString) {
+    final regex = RegExp(r'<[^>]*>', multiLine: true, caseSensitive: true);
+    final unescape = HtmlUnescape();
+    return unescape.convert(htmlString.replaceAll(regex, ''));
+  }
+
   factory TechCDetailsModel.fromJson(Map<String, dynamic> json) {
     return TechCDetailsModel(
       id: json['id'] ?? 0,
       date: json['date'] ?? "",
       slug: json['slug'] ?? "",
       link: json['link'] ?? "",
-      // Parsing nested 'rendered' objects
-      title: json['title']?['rendered'] ?? "No Title",
-      content: json['content']?['rendered'] ?? "",
-      excerpt: json['excerpt']?['rendered'] ?? "",
-      // Jetpack provides the direct high-res image URL here
+      title: _cleanHtml(json['title']?['rendered'] ?? "No Title"),
+      content: _cleanHtml(json['content']?['rendered'] ?? ""),
+      excerpt: _cleanHtml(json['excerpt']?['rendered'] ?? ""),
       imageUrl: json['jetpack_featured_media_url'] ?? "https://via.placeholder.com/600",
-      // Author name is usually inside yoast_head_json for easy access
       authorName: json['yoast_head_json']?['author'] ?? "TechCrunch Staff",
-      // Extracting category names from class_list or looking them up
       categories: (json['class_list'] as List?)
               ?.where((c) => c.toString().startsWith('category-'))
               .map((c) => c.toString().replaceFirst('category-', ''))
