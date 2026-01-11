@@ -5,8 +5,7 @@ class AppColors {
   static const Color primaryText = Color(0xFF3c4d6b);
   static const Color secondaryText = Color(0xFF7c899b);
   static const Color thirdText = Color(0xFFc1c7d0);
-  static const Color onboarding1 = Color(0xFF0097A7);
-  static const Color onboarding2 = Color(0xFF536DFE);
-  static const Color onboarding3 = Color(0xFF9B90BC);
-  static const Color onboarding4 = Color(0xFF5886D6);
+  static const Color onboarding1 = Color.fromARGB(255, 212, 218, 224);
+  static const Color onboarding2 = Color.fromARGB(255, 223, 182, 185);
+  static const Color onboarding3 = Color.fromARGB(255, 149, 159, 178);
 }
