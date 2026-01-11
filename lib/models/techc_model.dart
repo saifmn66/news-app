@@ -1,11 +1,25 @@
 import 'package:dart_rss/dart_rss.dart';
+import 'package:hive/hive.dart';
 
-class TechCModel {
+part 'techc_model.g.dart';
+@HiveType(typeId: 0)
+class TechCModel extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String title;
+
+  @HiveField(2)
   final String link;
+
+  @HiveField(3)
   final String author;
+
+  @HiveField(4)
   final String date;
+
+  @HiveField(5)
   final String imageUrl;
 
   TechCModel({
@@ -41,7 +55,7 @@ class TechCModel {
     }
 
     return TechCModel(
-      id: 0,
+      id: DateTime.now().millisecondsSinceEpoch,
       title: item.title ?? "No Title",
       link: item.link ?? "",
       author: item.dc?.creator ?? "TechCrunch",

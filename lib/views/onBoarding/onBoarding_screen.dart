@@ -32,21 +32,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<PageModel> _pages = [
     PageModel(
       color: Color(0xFF0097A7),
-      imageAssetPath: 'assets/01.png',
+      imageAssetPath: 'assets/ouss1.jpg',
       title: 'Welcome Dev',
       body: 'All tech news in one place',
       doAnimateImage: true,
     ),
     PageModel(
       color: Color(0xFF536DFE),
-      imageAssetPath: 'assets/02.png',
+      imageAssetPath: 'assets/ouss2.jpg',
       title: 'Languages',
       body: 'Flutter, Java, Python, JS updates',
       doAnimateImage: true,
     ),
     PageModel(
       color: Color(0xFF9B90BC),
-      imageAssetPath: 'assets/03.png',
+      imageAssetPath: 'assets/ouss3.jpg',
       title: 'Cloud & AI',
       body: 'AWS, Google, Huawei, AI news',
       doAnimateImage: true,

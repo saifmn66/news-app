@@ -1,8 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:news_app/core/constants/app_colors.dart';
 import 'package:news_app/models/tec_details_model.dart';
-
-
 
 class NewsDetailsScreen extends StatefulWidget {
   final TechCDetailsModel article;
@@ -13,14 +13,41 @@ class NewsDetailsScreen extends StatefulWidget {
   State<NewsDetailsScreen> createState() => _NewsDetailsScreenState();
 }
 
-class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
+class _NewsDetailsScreenState extends State<NewsDetailsScreen> with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
   bool _showTitle = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    
+    // Animation setup
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeIn,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // Start animation slightly after build
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _animationController.forward();
+    });
   }
 
   void _onScroll() {
@@ -34,6 +61,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -46,12 +74,18 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
         slivers: [
           _buildAppBar(),
           SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                _buildContent(),
-              ],
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    _buildContent(),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -61,78 +95,42 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
-      expandedHeight: 400,
+      expandedHeight: 450,
       pinned: true,
       elevation: 0,
       backgroundColor: Colors.white,
-      systemOverlayStyle: SystemUiOverlayStyle.dark,
-      leading: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: _buildGlassButton(
+        icon: Icons.arrow_back_ios_new_rounded,
+        onTap: () => Navigator.pop(context),
       ),
       actions: [
-        Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.bookmark_border, color: Colors.black87),
-            onPressed: () {},
-          ),
+        _buildGlassButton(
+          icon: Icons.bookmark_border_rounded,
+          onTap: () {},
         ),
-        Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.black87),
-            onPressed: () {},
-          ),
+        _buildGlassButton(
+          icon: Icons.share_rounded,
+          onTap: () {},
         ),
+        const SizedBox(width: 16),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        title: _showTitle
-            ? Text(
-                widget.article.title,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              )
-            : null,
+        title: AnimatedOpacity(
+          duration: const Duration(milliseconds: 300),
+          opacity: _showTitle ? 1.0 : 0.0,
+          child: Text(
+            widget.article.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.primaryText,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        centerTitle: true,
         background: Hero(
           tag: 'article_${widget.article.id}',
           child: Stack(
@@ -144,7 +142,7 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: Colors.grey[200],
-                    child: const Icon(Icons.image, size: 80, color: Colors.grey),
+                    child: const Icon(Icons.image_not_supported_rounded, size: 80, color: Colors.grey),
                   );
                 },
               ),
@@ -154,9 +152,11 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
+                      Colors.black.withOpacity(0.2),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.7),
+                      Colors.black.withOpacity(0.6),
                     ],
+                    stops: const [0.0, 0.5, 1.0],
                   ),
                 ),
               ),
@@ -167,32 +167,55 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
     );
   }
 
+  Widget _buildGlassButton({required IconData icon, required VoidCallback onTap}) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+          child: Container(
+            color: Colors.black.withOpacity(0.2),
+            child: IconButton(
+              icon: Icon(icon, color: Colors.white, size: 20),
+              onPressed: onTap,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildCategories(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             widget.article.title,
             style: const TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
               height: 1.3,
-              color: Colors.black87,
+              color: AppColors.primaryText,
+              letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 16),
           Text(
             widget.article.excerpt,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               height: 1.6,
-              color: Colors.grey[600],
+              color: AppColors.secondaryText,
+              fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 24),
+          const Divider(color: Color(0xFFEEEEEE), height: 1),
           const SizedBox(height: 24),
           _buildAuthorInfo(),
         ],
@@ -202,21 +225,23 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   Widget _buildCategories() {
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: 12,
+      runSpacing: 12,
       children: widget.article.categories.map((category) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
           ),
           child: Text(
-            category,
+            category.toUpperCase(),
             style: const TextStyle(
-              color: Colors.blue,
+              color: AppColors.primary,
               fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
             ),
           ),
         );
@@ -227,19 +252,26 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
   Widget _buildAuthorInfo() {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: Colors.blue,
-          child: Text(
-            widget.article.authorName[0].toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primary, width: 2),
+          ),
+          child: CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              widget.article.authorName.isNotEmpty ? widget.article.authorName[0].toUpperCase() : 'A',
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,28 +280,36 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
                 widget.article.authorName,
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryText,
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                _formatDate(widget.article.date),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.access_time_rounded, size: 14, color: AppColors.secondaryText),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDate(widget.article.date),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondaryText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(8),
+          height: 40,
+          width: 40,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xFFF5F6FA),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.more_horiz, color: Colors.grey),
+          child: const Icon(Icons.more_horiz_rounded, color: AppColors.secondaryText),
         ),
       ],
     );
@@ -277,23 +317,22 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   Widget _buildContent() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 32),
           Text(
             widget.article.content,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 18,
               height: 1.8,
-              color: Colors.black87,
-              letterSpacing: 0.2,
+              color: Color(0xFF4A4A4A),
+              letterSpacing: 0.1,
             ),
           ),
           const SizedBox(height: 40),
           _buildActionButtons(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -301,64 +340,36 @@ class _NewsDetailsScreenState extends State<NewsDetailsScreen> {
 
   Widget _buildActionButtons() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.thumb_up_outlined,
-            label: 'Like',
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.comment_outlined,
-            label: 'Comment',
-            onTap: () {},
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildActionButton(
-            icon: Icons.share_outlined,
-            label: 'Share',
-            onTap: () {},
-          ),
-        ),
+        _buildCircularAction(Icons.thumb_up_alt_outlined, "Like", Colors.blue),
+        _buildCircularAction(Icons.chat_bubble_outline_rounded, "Comment", Colors.amber),
+        _buildCircularAction(Icons.share_outlined, "Share", Colors.green),
       ],
     );
   }
 
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(12),
+  Widget _buildCircularAction(IconData icon, String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 28),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: Colors.grey[700]),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[600],
+          ),
         ),
-      ),
+      ],
     );
   }
 

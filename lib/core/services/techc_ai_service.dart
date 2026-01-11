@@ -1,13 +1,21 @@
 import 'package:http/http.dart' as http;
 import 'package:dart_rss/dart_rss.dart';
 import '../../models/techc_model.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class TechCrunchAiService {
   final String _url =
       'https://techcrunch.com/category/artificial-intelligence/feed/';
 
+  final _box = Hive.box<TechCModel>('tech_ai_news_box');
+
+  // Added: Helper to get local data for immediate UI display
+  List<TechCModel> getCachedNews() => _box.values.toList();
+
+
   Future<List<TechCModel>> fetchNews({int page = 1}) async {
-    final response = await http.get(
+    try {
+      final response = await http.get(
       Uri.parse('$_url?paged=$page'),
       headers: {
         'User-Agent':
@@ -48,9 +56,19 @@ class TechCrunchAiService {
         return model;
       });
 
-      return Future.wait(futures);
+      final results = await Future.wait(futures);
+
+        // Added: Save to Hive. If page is 1, we overwrite the old cache.
+        if (page == 1) await _box.clear(); 
+        await _box.addAll(results); 
+
+        return results;
     } else {
       throw Exception('Failed to fetch TechCrunch RSS: ${response.statusCode}');
+    }
+    } catch (e) {
+      if (_box.isNotEmpty) return _box.values.toList();
+      rethrow;
     }
   }
 }

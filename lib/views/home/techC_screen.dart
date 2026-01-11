@@ -45,39 +45,58 @@ class _TechcScreenState extends State<TechcScreen> {
   Future<void> _fetchArticles() async {
     if (_isLoading) return;
 
+    // 1. Show cache immediately if we are starting fresh
+    if (_page == 1 && _articles.isEmpty) {
+      final cachedData = _newsService.getCachedNews();
+      if (cachedData.isNotEmpty) {
+        setState(() {
+          _articles.addAll(cachedData);
+        });
+      }
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final newArticles = await _newsService.fetchNews(page: _page);
-      if (newArticles.isEmpty) {
+
+      setState(() {
+        if (_page == 1) _articles.clear(); // Replace cache with fresh API data
+        _articles.addAll(newArticles);
+        _page++;
+        if (newArticles.isEmpty) _hasMore = false;
+      });
+    } catch (e) {
+      // 2. EMERGENCY FALLBACK: If network fails and UI is empty, try cache again
+      if (_articles.isEmpty) {
+        final fallbackCache = _newsService.getCachedNews();
+        if (fallbackCache.isNotEmpty) {
+          setState(() {
+            _articles.addAll(fallbackCache);
+          });
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Working Offline: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
         setState(() {
-          _hasMore = false;
-        });
-      } else {
-        setState(() {
-          _articles.addAll(newArticles);
-          _page++;
+          _isLoading = false;
         });
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading more news: $e')),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("TechCrunch News"),
-      ),
+      appBar: AppBar(title: const Text("TechCrunch News")),
       body: _articles.isEmpty && _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(

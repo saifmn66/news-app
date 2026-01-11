@@ -36,6 +36,7 @@ class _MainScreenState extends State<MainScreen> {
         children: const [
           TechcScreen(),
           TechcCyberScreen(),
+          Center(child: Text("Company News", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
           TechcAiScreen(),
           TechcCryptoScreen(),
         ],

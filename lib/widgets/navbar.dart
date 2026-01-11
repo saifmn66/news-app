@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:news_app/core/constants/app_colors.dart';
-import 'package:water_drop_nav_bar/water_drop_nav_bar.dart';
 
 class CustomNavBar extends StatefulWidget {
   final PageController pageController;
@@ -13,45 +12,90 @@ class CustomNavBar extends StatefulWidget {
 
 class _CustomNavBarState extends State<CustomNavBar> {
   int selectedIndex = 0;
-  final Color navigationBarColor = Colors.white;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+    widget.pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutQuad,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: WaterDropNavBar(
-        backgroundColor: navigationBarColor,
-        waterDropColor: AppColors.primary,
-        selectedIndex: selectedIndex,
-        onItemSelected: (int index) {
-          setState(() {
-            selectedIndex = index;
-          });
-          widget.pageController.animateToPage(
-            selectedIndex,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeOutQuad,
-          );
-        },
-        barItems: <BarItem>[
-          BarItem(
-            filledIcon: Icons.bookmark_rounded,
-            outlinedIcon: Icons.bookmark_border_rounded,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 10, left: 16, right: 16, top:5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-          BarItem(
-            filledIcon: Icons.favorite_rounded,
-            outlinedIcon: Icons.favorite_border_rounded,
-          ),
-          BarItem(
-            filledIcon: Icons.email_rounded,
-            outlinedIcon: Icons.email_outlined,
-          ),
-          BarItem(
-            filledIcon: Icons.folder_rounded,
-            outlinedIcon: Icons.folder_outlined,
-          ),
-          
         ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavItem(0, Icons.language_rounded, "Global IT"),
+          _buildNavItem(1, Icons.security_rounded, "Cyber"),
+          _buildCenterItem(2, "Company News"),
+          _buildNavItem(3, Icons.psychology_rounded, "AI News"),
+          _buildNavItem(4, Icons.currency_bitcoin_rounded, "Crypto"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? AppColors.primary : Colors.grey,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCenterItem(int index, String label) {
+    bool isSelected = selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.grey.withOpacity(0.5),
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          "Categories",
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
       ),
     );
   }
